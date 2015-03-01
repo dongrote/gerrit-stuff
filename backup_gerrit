@@ -1,0 +1,58 @@
+#!/bin/bash
+retval=0
+GERRIT_DIR=/home/gerrit2/review_site
+tmpdir=$(mktemp -d)
+chmod 0755 $tmpdir
+
+/etc/init.d/gerrit stop
+
+
+tar -pPcf $tmpdir/git.tar --transform "s#$GERRIT_DIR/##" $GERRIT_DIR/git
+if [ $? -ne 0 ]
+then
+	echo "Error creating git archive"
+	rm -rf $tmpdir
+	/etc/init.d/gerrit start
+	exit 1
+fi
+
+su -l -c "pg_dump reviewdb" gerrit2 > $tmpdir/dbbackup-script.sql
+if [ $? -ne 0 ]
+then
+	echo "Error creating database backup script"
+	rm -rf $tmpdir
+	/etc/init.d/gerrit start
+	exit 1
+fi
+
+/etc/init.d/gerrit start
+
+cat <<EOF >$tmpdir/restore.sh
+#!/bin/bash
+sudo /etc/init.d/gerrit stop
+sudo su -c "rm -rf $GERRIT_DIR/git; tar -xf git.tar -C $GERRIT_DIR" gerrit2
+sudo su -c "dropdb reviewdb; createdb reviewdb; psql reviewdb < dbbackup-script.sql" postgres
+sudo /etc/init.d/gerrit start
+EOF
+chmod +x $tmpdir/restore.sh
+
+tar -czPf /tmp/gerrit_backup.tgz --transform "s#$tmpdir#gerrit-backup.d#" $tmpdir
+if [ $? -ne 0 ]
+then
+	echo "Error creating final archive"
+	rm -rf $tmpdir
+	exit 1
+fi
+
+rm -rf $tmpdir
+
+su dgrote -c "scp /tmp/gerrit_backup.tgz devbits:new-gerrit-backup.tgz"
+if [ $? -ne 0 ]
+then
+	echo "Error sending archive to devbits"
+	retval=1
+else
+	rm -f /tmp/gerrit_backup.tgz
+fi
+
+exit $retval
