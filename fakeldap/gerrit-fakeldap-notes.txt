@@ -1,0 +1,8 @@
+sudo apt-get install python-ldaptor
+# fix bug in ldaptor
+for f in $(find /usr/lib/python2.7/dist-packages/ldaptor -name "*.py")
+do
+	sudo sed -i 's/log\.debug/log.msg/' $f
+done
+sudo pip install python-pam
+
