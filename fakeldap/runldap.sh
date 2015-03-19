@@ -1,2 +1,2 @@
 #!/bin/bash
-twistd -noy ldapserver.tac
+twistd -noy gerrit-ldap-server.tac

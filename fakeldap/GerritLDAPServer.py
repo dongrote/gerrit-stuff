@@ -49,7 +49,7 @@ def getUserAttribute(username,attribute):
         return getUserAttribute_displayName(username)
     raise ValueError('Invalid attribute: %r' % attribute)
 
-class SimpleLDAPServer(LDAPServer):
+class GerritLDAPServer(LDAPServer):
     def __init__(self):
         self.pam = pam.pam()
         LDAPServer.__init__(self)
