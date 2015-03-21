@@ -1,0 +1,197 @@
+#!/bin/sh
+#
+# Launch Gerrit LDAP Server as a daemon process
+
+# To get the service to restart correctly on reboot, uncomment below (3 lines):
+# ========================
+# chkconfig: 3 99 99
+# description: Gerrit LDAP Server
+# processname: gerrit-ldap-server
+# ========================
+
+### BEGIN INIT INFO
+# Provides:          gerrit-ldap-server
+# Required-Start:    $named $remote_fs $syslog
+# Required-Stop:     $named $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start/stop Gerrit LDAP Server
+# Description:       GerritLDAPServer is a fake LDAP server built specifically
+#                    for Gerrit Code Review to enable user authentication
+#                    using local user accounts.
+### END INIT INFO
+
+# Configuration files:
+#
+# /etc/default/gerritldapserver
+#   If it exists, sourced at the start of this script. It may perform any
+#   sequence of shell commands, like setting relevant environment variables.
+#
+# The files will be checked for existence before being sourced.
+
+# Configuration variables.  These may be set in /etc/default/gerritldapserver
+#
+# EMAIL_DOMAIN
+#   Email address suffix to use for email account generation when speaking
+#   LDAP to Gerrit Code Review. Default is "example.com". Trust me, you want
+#   to change this.
+#
+# GERRIT_LDAP_DEBUG
+#   Print out extra debug information.
+#
+# GERRIT_USER
+#   User to change privileges to for running the Gerrit LDAP Server.
+
+usage() {
+	me=`basename $0`
+	echo >&2 "Usage: $me (start|stop|restart|check|status) [-d site]"
+	exit 1
+}
+
+test $# -gt 0 || usage
+
+running() {
+	test -f $1 || return 1
+	PID=`cat $1`
+	ps -p $PID >/dev/null 2>&1 || return 1
+	return 0
+}
+
+INITIAL_DIR=`pwd`
+
+##################################################
+# Get the action
+##################################################
+
+ACTION=$1
+shift
+
+while test $# -gt 0 ; do
+  case "$1" in
+  -d|--site-path)
+    shift
+    GERRIT_SITE=$1
+    shift
+    ;;
+  -d=*)
+    GERRIT_SITE=${1##-d=}
+    shift
+    ;;
+  --site-path=*)
+    GERRIT_SITE=${1##--site-path=}
+    shift
+    ;;
+
+  *)
+    usage
+  esac
+done
+
+
+test -z "$EMAIL_DOMAIN" && EMAIL_DOMAIN="example.com"
+test -z "$GERRIT_LDAP_DEBUG" && GERRIT_LDAP_DEBUG=0
+
+##################################################
+# See if there's a default configuration file
+##################################################
+if test -f /etc/default/gerritldapserver ; then
+  . /etc/default/gerritldapserver
+fi
+
+##################################################
+# No twistd in PATH? Needed for execution
+##################################################
+if type twistd >/dev/null 2>&1 ; then
+  : OK
+else
+  echo >&2 "** ERROR: Cannot find twistd in PATH"
+  exit 1
+fi
+
+GERRIT_LDAP_PID="$GERRIT_SITE/logs/gerrit-ldap-server.pid"
+GERRIT_LDAP_LOG="$GERRIT_SITE/logs/gerrit-ldap-server.log"
+
+##################################################
+# Do the action
+##################################################
+case "$ACTION" in
+  start)
+    printf '%s' "Starting Gerrit LDAP Server: "
+	if test -f "$GERRIT_LDAP_PID" ; then
+  	  if running "$GERRIT_LDAP_PID" ; then
+	    echo "Already Running!!"
+	    exit 0
+	  else
+	    rm -f "$GERRIT_LDAP_PID"
+	  fi
+	fi
+
+    test -z "$UID" && UID=`id | sed -e 's/^[^=]*=\([0-9]*\).*/\1/'`
+
+	if test $UID = 0 -a -n "$GERRIT_USER" ; then
+	  su - $GERRIT_USER -s /bin/sh -c "\
+		cd \"$GERRIT_SITE/bin\";\
+	    twistd --pidfile=\"$GERRIT_LDAP_PID\" --prefix=gerrit-ldap-server \
+		-l \"$GERRIT_LDAP_LOG\" -o -y gerrit-ldap-server.tac"
+	else
+	  cd "$GERRIT_SITE/bin"
+	  twistd --pidfile="$GERRIT_LDAP_PID" --prefix=gerrit-ldap-server \
+	  -l "$GERRIT_LDAP_LOG" -o -y gerrit-ldap-server.tac
+	  cd -
+	fi
+
+	TIMEOUT=10 # seconds
+	sleep 1
+	while test $TIMEOUT -gt 0; do
+	  if running "$GERRIT_LDAP_PID"; then
+	    echo OK
+		exit 0
+	  fi
+
+	  sleep 2
+	  TIMEOUT=`expr $TIMEOUT - 2`
+	done
+
+	echo FAILED
+	exit 1
+  ;;
+  stop)
+    echo -n "Stopping Gerrit LDAP Server: "
+	if ! running "$GERRIT_LDAP_PID"
+	then
+		echo FAILED
+		exit 1
+	fi
+    PID=`cat "$GERRIT_LDAP_PID"`
+    TIMEOUT=10
+    while running "$GERRIT_LDAP_PID" && test $TIMEOUT -gt 0 ; do
+      kill $PID 2>/dev/null
+      sleep 1
+      TIMEOUT=`expr $TIMEOUT - 1`
+    done
+    test $TIMEOUT -gt 0 || kill -9 $PID 2>/dev/null
+    echo OK
+  ;;
+  restart)
+    GERRIT_SH=$0
+    if test -f "$GERRIT_SH" ; then
+      : OK
+    else
+      GERRIT_SH="$INITIAL_DIR/$GERRIT_SH"
+      if test -f "$GERRIT_SH" ; then
+        : OK
+      else
+        echo >&2 "** ERROR: Cannot locate gerrit-ldap-server init script"
+        exit 1
+      fi
+    fi
+    $GERRIT_SH stop $*
+    sleep 5
+    $GERRIT_SH start $*
+  ;;
+  *)
+    usage
+  ;;
+esac
+
+exit 0

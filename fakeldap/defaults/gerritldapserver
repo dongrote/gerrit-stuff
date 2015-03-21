@@ -1,0 +1,3 @@
+EMAIL_DOMAIN="example.com"
+GERRIT_USER="gerrit2"
+GERRIT_SITE="/home/gerrit2/review_site"
