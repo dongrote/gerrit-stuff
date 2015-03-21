@@ -44,7 +44,7 @@
 
 usage() {
 	me=`basename $0`
-	echo >&2 "Usage: $me (start|stop|restart|check|status) [-d site]"
+	echo >&2 "Usage: $me (start|stop|restart) [-d site]"
 	exit 1
 }
 
