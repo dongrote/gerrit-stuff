@@ -127,6 +127,7 @@ case "$ACTION" in
 	fi
 
 	cd "$GERRIT_SITE/bin"
+        EMAIL_DOMAIN="$EMAIL_DOMAIN" GERRIT_LDAP_DEBUG="$GERRIT_LDAP_DEBUG" \
         twistd --pidfile="$GERRIT_LDAP_PID" --prefix=gerrit-ldap-server \
         -l "$GERRIT_LDAP_LOG" -o -y gerrit-ldap-server.tac
 	cd - >/dev/null
