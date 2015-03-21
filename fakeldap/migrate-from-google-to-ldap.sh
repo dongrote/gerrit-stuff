@@ -63,6 +63,12 @@ if [ ! -d "$GERRIT_SITE" ] ; then
 	exit 1
 fi
 
+yes | apt-get install python-ldaptor
+yes | pip install python-pam
+for f in $(find /usr/lib/python2.7/dist-packages/ldaptor -name "*.py") ; do
+	sed -i 's/log\.debug/log.msg/' $f
+done
+
 install GerritLDAPServer.py "$GERRIT_SITE/bin/"
 if [ $? -ne 0 ] ; then
 	catastrophe
@@ -72,7 +78,6 @@ install gerrit-ldap-server.tac "$GERRIT_SITE/bin/"
 if [ $? -ne 0 ] ; then
 	catastrophe
 fi
-
 
 install init.d/gerrit-ldap-server /etc/init.d/
 if [ $? -ne 0 ] ; then
