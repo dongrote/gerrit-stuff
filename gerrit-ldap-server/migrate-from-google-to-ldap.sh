@@ -1,14 +1,18 @@
 #!/bin/bash
 GERRIT_SITE=/home/gerrit2/review_site
 REVIEWDB_BACKUP=/tmp/reviewdb-backup
+GERRIT_USER=gerrit2
+GERRIT_GROUP=$GERRIT_USER
 
 install () {
+	ownership="$3"
 	echo -n "Installing $1 into $2 ... "
 	cp "$1" "$2"
 	if [ $? -ne 0 ]; then
 		echo "FAILED"
 		return 1
 	fi
+	test -z "$ownership" || chown "$ownership" "$2"
 	echo "OK"
 	return 0
 }
@@ -69,12 +73,12 @@ for f in $(find /usr/lib/python2.7/dist-packages/ldaptor -name "*.py") ; do
 	sed -i 's/log\.debug/log.msg/' $f
 done
 
-install GerritLDAPServer.py "$GERRIT_SITE/bin/"
+install GerritLDAPServer.py "$GERRIT_SITE/bin/" $GERRIT_USER:$GERRIT_GROUP
 if [ $? -ne 0 ] ; then
 	catastrophe
 fi
 
-install gerrit-ldap-server.tac "$GERRIT_SITE/bin/"
+install gerrit-ldap-server.tac "$GERRIT_SITE/bin/" $GERRIT_USER:$GERRIT_GROUP
 if [ $? -ne 0 ] ; then
 	catastrophe
 fi
