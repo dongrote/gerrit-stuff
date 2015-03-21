@@ -126,19 +126,10 @@ case "$ACTION" in
 	  fi
 	fi
 
-    test -z "$UID" && UID=`id | sed -e 's/^[^=]*=\([0-9]*\).*/\1/'`
-
-	if test $UID = 0 -a -n "$GERRIT_USER" ; then
-	  su - $GERRIT_USER -s /bin/sh -c "\
-		cd \"$GERRIT_SITE/bin\";\
-	    twistd --pidfile=\"$GERRIT_LDAP_PID\" --prefix=gerrit-ldap-server \
-		-l \"$GERRIT_LDAP_LOG\" -o -y gerrit-ldap-server.tac"
-	else
-	  cd "$GERRIT_SITE/bin"
-	  twistd --pidfile="$GERRIT_LDAP_PID" --prefix=gerrit-ldap-server \
-	  -l "$GERRIT_LDAP_LOG" -o -y gerrit-ldap-server.tac
-	  cd -
-	fi
+	cd "$GERRIT_SITE/bin"
+        twistd --pidfile="$GERRIT_LDAP_PID" --prefix=gerrit-ldap-server \
+        -l "$GERRIT_LDAP_LOG" -o -y gerrit-ldap-server.tac
+	cd - >/dev/null
 
 	TIMEOUT=10 # seconds
 	sleep 1
