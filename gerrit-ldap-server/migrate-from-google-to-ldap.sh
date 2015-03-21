@@ -73,7 +73,7 @@ for f in $(find /usr/lib/python2.7/dist-packages/ldaptor -name "*.py") ; do
 	sed -i 's/log\.debug/log.msg/' $f
 done
 
-install GerritLDAPServer.py "$GERRIT_SITE/bin/GerritLDAPServer.py " $GERRIT_USER:$GERRIT_GROUP
+install GerritLDAPServer.py "$GERRIT_SITE/bin/GerritLDAPServer.py" $GERRIT_USER:$GERRIT_GROUP
 if [ $? -ne 0 ] ; then
 	catastrophe
 fi
