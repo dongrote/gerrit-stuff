@@ -73,22 +73,22 @@ for f in $(find /usr/lib/python2.7/dist-packages/ldaptor -name "*.py") ; do
 	sed -i 's/log\.debug/log.msg/' $f
 done
 
-install GerritLDAPServer.py "$GERRIT_SITE/bin/" $GERRIT_USER:$GERRIT_GROUP
+install GerritLDAPServer.py "$GERRIT_SITE/bin/GerritLDAPServer.py " $GERRIT_USER:$GERRIT_GROUP
 if [ $? -ne 0 ] ; then
 	catastrophe
 fi
 
-install gerrit-ldap-server.tac "$GERRIT_SITE/bin/" $GERRIT_USER:$GERRIT_GROUP
+install gerrit-ldap-server.tac "$GERRIT_SITE/bin/gerrit-ldap-server.tac" $GERRIT_USER:$GERRIT_GROUP
 if [ $? -ne 0 ] ; then
 	catastrophe
 fi
 
-install init.d/gerrit-ldap-server /etc/init.d/
+install init.d/gerrit-ldap-server /etc/init.d/gerrit-ldap-server
 if [ $? -ne 0 ] ; then
 	catastrophe
 fi
 
-install default/gerritldapserver /etc/default/
+install default/gerritldapserver /etc/default/gerritldapserver
 if [ $? -ne 0 ] ; then
 	catastrophe
 fi
