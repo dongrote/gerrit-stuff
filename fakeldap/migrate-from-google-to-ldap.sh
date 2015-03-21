@@ -15,7 +15,7 @@ install () {
 
 catastrophe () {
 	update-rc.d gerrit-ldap-server disable
-	rm /etc/defaults/gerritldapserver
+	rm /etc/default/gerritldapserver
 	rm /etc/init.d/gerrit-ldap-server
 	rm "$GERRIT_SITE/bin/GerritLDAPServer.py"
 	rm "$GERRIT_SITE/bin/gerrit-ldap-server.tac"
@@ -84,7 +84,7 @@ if [ $? -ne 0 ] ; then
 	catastrophe
 fi
 
-install defaults/gerritldapserver /etc/defaults/
+install default/gerritldapserver /etc/default/
 if [ $? -ne 0 ] ; then
 	catastrophe
 fi
