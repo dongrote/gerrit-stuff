@@ -91,7 +91,6 @@ class GerritLDAPServer(LDAPServer):
         pass
 
     def handle_LDAPSearchRequest(self, request, controls, reply):
-        print 'rx SearchRequest: %r' % request
         if (request.baseObject == ''
             and request.scope == pureldap.LDAP_SCOPE_baseObject
             and request.filter == pureldap.LDAPFilter_present('objectClass')):
@@ -102,11 +101,9 @@ class GerritLDAPServer(LDAPServer):
                              ('supportedExtension', [])
                 ]
                 )
-            print 'replyEntry: %r' % replyEntry
             reply(replyEntry)
             response = pureldap.LDAPSearchResultDone(
                     resultCode=ldaperrors.Success.resultCode)
-            print 'response: %r' % response
             return response
         if ((request.baseObject == 'ou=people,dc=nodomain')
             and isinstance(request.filter,pureldap.LDAPFilter_equalityMatch)
