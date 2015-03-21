@@ -1,5 +1,6 @@
 # -*- python -*-
 # vim: set syntax=python
+import os
 from GerritLDAPServer import GerritLDAPServer
 from twisted.internet import protocol
 from twisted.python import components
@@ -13,7 +14,8 @@ class GerritLDAPServerFactory(protocol.ServerFactory):
     def __init__(self, root):
         self.root = root
 
-GerritLDAPServer.debug = True
+GERRIT_LDAP_DEBUG = os.getenv('GERRIT_LDAP_DEBUG', default='0')
+GerritLDAPServer.debug = GERRIT_LDAP_DEBUG != '0'
 
 components.registerAdapter(lambda x: x.root,
                             GerritLDAPServerFactory,

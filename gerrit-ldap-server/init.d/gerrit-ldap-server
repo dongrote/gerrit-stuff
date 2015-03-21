@@ -39,8 +39,8 @@
 # GERRIT_LDAP_DEBUG
 #   Print out extra debug information.
 #
-# GERRIT_USER
-#   User to change privileges to for running the Gerrit LDAP Server.
+# GERRIT_SITE
+#   Directory where the Gerrit Code Review site is installed on the filesystem
 
 usage() {
 	me=`basename $0`
