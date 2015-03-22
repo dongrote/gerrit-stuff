@@ -17,6 +17,24 @@ install () {
 	return 0
 }
 
+compile_python_module () {
+	path="$1"
+	directory=$(dirname "$path")
+	modulename=$(basename "$path" .py)	
+	test -z "$2" || runas="$2"
+	cd "$directory"
+	test $? -eq 0 || return 1
+	if [ -z "$runas" ] ; then
+		PREFIX=""
+	else
+		PREFIX="sudo -u $runas "
+	fi
+	$PREFIX python -c "import $modulename"
+	retval=$?
+	cd - >/dev/null
+	return $retval
+}
+
 catastrophe () {
 	update-rc.d gerrit-ldap-server disable
 	rm /etc/default/gerritldapserver
@@ -74,6 +92,11 @@ for f in $(find /usr/lib/python2.7/dist-packages/ldaptor -name "*.py") ; do
 done
 
 install GerritLDAPServer.py "$GERRIT_SITE/bin/GerritLDAPServer.py" $GERRIT_USER:$GERRIT_GROUP
+if [ $? -ne 0 ] ; then
+	catastrophe
+fi
+
+compile_python_module "$GERRIT_SITE/bin/GerritLDAPServer.py" $GERRIT_USER
 if [ $? -ne 0 ] ; then
 	catastrophe
 fi
