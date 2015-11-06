@@ -13,7 +13,7 @@ fi
 get_project_change_ids () {
 	project_name="$1"
 	query="SELECT change_id FROM changes WHERE dest_project_name='$project_name'"
-	sudo -u $gerrituser psql -c "$query" $dbname | grep -E "[0-9]+" | grep -v rows | sed 's/^ *//'
+	sudo -u $gerrituser psql -c "$query" $dbname | grep -E "[0-9]+" | grep -v row | sed 's/^ *//'
 }
 
 delete_change_id_from_table () {
