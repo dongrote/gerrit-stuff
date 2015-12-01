@@ -14,7 +14,7 @@ fi
 run_sql_query () {
 	query="$1"
 	dbase="$2"
-	#sudo -u $gerrituser psql -c "$query" "$dbase"
+	sudo -u $gerrituser psql -c "$query" "$dbase"
 	echo "psql -c \"$query\" $dbase"
 }
 
@@ -78,8 +78,8 @@ update_account_project_watches_old_new "$old_project_name" "$new_project_name"
 update_submodule_subscriptions_old_new "$old_project_name" "$new_project_name"
 update_system_config "$old_project_name" "$new_project_name"
 
-#sudo -u $gerrituser mv "$GERRIT_SITE/git/$old_project_name.git" "$GERRIT_SITE/git/$new_project_name.git"
-echo "sudo -u $gerrituser mv \"$GERRIT_SITE/git/$old_project_name.git\" \"$GERRIT_SITE/git/$new_project_name.git\""
+sudo -u $gerrituser mv "$GERRIT_SITE/git/$old_project_name.git" "$GERRIT_SITE/git/$new_project_name.git"
+#echo "sudo -u $gerrituser mv \"$GERRIT_SITE/git/$old_project_name.git\" \"$GERRIT_SITE/git/$new_project_name.git\""
 
 sudo /etc/init.d/gerrit start
 if [ $? -ne 0 ] ; then
